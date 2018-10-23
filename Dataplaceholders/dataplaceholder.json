@@ -1,0 +1,13 @@
+[
+  {
+    "article_id": 1,
+    "article_title": "first database post",
+    "posts": "1;2",
+    "tagplate": "",
+  },
+  {
+    "article_id": 2,
+    "posttitle": "first database post",
+    "body": "3;4;"
+  }
+  ]

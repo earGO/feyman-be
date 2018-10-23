@@ -1,0 +1,27 @@
+[
+  {
+    tag_id: "1",
+    tag_name: "reactTag",
+    tag_img: "https://via.placeholder.com/50x50"
+  },
+  {
+    tag_id: "2",
+    tag_name: "NodeJS_Tag",
+    tag_img: "https://via.placeholder.com/50x50"
+  },
+  {
+    tag_id: "3",
+    tag_name: "Postgres_Tag",
+    tag_img: "https://via.placeholder.com/50x50"
+  },
+  {
+    tag_id: "4",
+    tag_name: "Git_Tag",
+    tag_img: "https://via.placeholder.com/50x50"
+  },
+  {
+    tag_id: "5",
+    tag_name: "Heroku_Tag",
+    tag_img: "https://via.placeholder.com/50x50"
+  }
+]
