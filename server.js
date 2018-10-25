@@ -4,12 +4,15 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
+var Promise = require('bluebird');
 
 
 const app = express();
 
 /*Since this blog do not need to have signin and stuff, we can have pretty simple backend server
 * Main issue will be in sorting data from database before sending it to frontend*/
+
+
 
 const db = knex({
     client: 'pg',
@@ -88,34 +91,38 @@ app.get('/admin', (req,res) => {
 })
 
 app.post('/admin/addpost', (req,res) => {
-    const {post_title, post_short, a_title, article_body, article_image, article_url} = req.body;
+    const {post_title, post_short, articles} = req.body;
     db.transaction(trx => {
-        trx.insert({
-            title:post_title,
-            date: new Date(),
-            short:post_short
-        })
-            .into('posts_v1')
+        db('posts_v1')
             .returning('ID')
-            .then(postID => {
-                return trx('articles_v1')
-                    .returning('*')
-                    .insert({
-                        a_title: a_title,
-                        post_id: postID[0],
-                        body: article_body,
-                        article_image: article_image,
-                        article_url:article_url
-                    })
-                    .then(post => {
-                        res.json(post[0]);
-                    })
-            }).then(trx.commit)
-            .catch(trx.rollback)
+            .insert({
+                title: post_title,
+                short:post_short,
+                date: new Date()
+            })
+            .transacting(trx)
+            .then((ID) => {
+                let aPubl=[];
+                articles.forEach(article => {
+                    aPubl.push(db('articles_v1')
+                        .insert({
+                            a_title: article.a_title,
+                            body:article.body,
+                            article_image: article.article_image,
+                            article_url:article.article_url,
+                            post_id:ID[0]
+                        }))
+                });
+                return Promise.all(aPubl);
+            })
+            .then(trx.commit)
+            .then(console.log('transaction succssfull'))
+            .catch(trx.rollback);
     })
-        .catch(err => res.status(400).json('unable to register'))
+        .catch(err => console.log('transaction failed' + err));
 
 })
+
 
 
 app.listen(3000,()=>{
