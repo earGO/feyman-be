@@ -82,6 +82,41 @@ app.get('/projects', (req,res) => {
     res.json('here we would send our project entries data - using same itemlist and item component');
 })
 
+/*Admin entrypoints part*/
+app.get('/admin', (req,res) => {
+    res.json('connected to server');
+})
+
+app.post('/admin/addpost', (req,res) => {
+    const {post_title, post_short, a_title, article_body, article_image, article_url} = req.body;
+    db.transaction(trx => {
+        trx.insert({
+            title:post_title,
+            date: new Date(),
+            short:post_short
+        })
+            .into('posts_v1')
+            .returning('ID')
+            .then(postID => {
+                return trx('articles_v1')
+                    .returning('*')
+                    .insert({
+                        a_title: a_title,
+                        post_id: postID[0],
+                        body: article_body,
+                        article_image: article_image,
+                        article_url:article_url
+                    })
+                    .then(post => {
+                        res.json(post[0]);
+                    })
+            }).then(trx.commit)
+            .catch(trx.rollback)
+    })
+        .catch(err => res.status(400).json('unable to register'))
+
+})
+
 
 app.listen(3000,()=>{
     console.log('app is running on port 3000');
