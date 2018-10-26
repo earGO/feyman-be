@@ -79,7 +79,7 @@ app.get('/ptags/:id', (req,res) => {
 
 /*get all tags*/
 app.get('/admin/tags/', (req,res) => {
-    db.select('*').from('colouroptions')
+    db.select('*').from('tags_v1')
         .then(data => {
             console.log('succesfull fetch of posts')
             if (data.length) {
@@ -163,7 +163,45 @@ app.post('/admin/addpost', (req,res) => {
         .catch(err => console.log('transaction failed, rollback' + err));
 *
 * */
+app.post('/admin/addpostwtags', (req,res) => {
+    const {post_title, post_short, articles, tags} = req.body;
+    console.log(tags)
+    db.transaction(trx => {
+        db('posts_v1')
+            .returning('ID')
+            .insert({
+                title:post_title,
+                short:post_short,
+                date: new Date()
+            })
+            .then((ID) => {
+                let aPubl=[];
+                articles.forEach(article => {
+                    aPubl.push(db('articles_v1')
+                        .insert({
+                            a_title: article.articleTitle,
+                            body:article.articleBody,
+                            article_image: article.articleImage,
+                            article_url:article.articleUrl,
+                            post_id:ID[0]
+                        }))
+                });
+                tags.forEach(tag => {
+                    aPubl.push(db('post_tags')
+                        .insert({
+                            post_id: ID[0],
+                            post_tag_ids:tag.tag_id
+                        }))
+                });
+                return Promise.all(aPubl);
+            })
+            .then(trx.commit)
+            .catch(trx.rollback);
+    })
+        .catch(err => console.log('transaction failed, rollback' + err));
 
+
+})
 /*also variant with forEach
 db.transaction(trx => {
         db('posts_v1')
