@@ -77,6 +77,20 @@ app.get('/ptags/:id', (req,res) => {
 
 })
 
+/*get all tags*/
+app.get('/admin/tags/', (req,res) => {
+    db.select('*').from('colouroptions')
+        .then(data => {
+            console.log('succesfull fetch of posts')
+            if (data.length) {
+                res.json(data)
+            } else {
+                res.status(400).json('post data not found')
+            }
+        })
+        .catch(err => res.status(400).json('error getting post'))
+})
+
 app.get('/books', (req,res) => {
     res.json('here we would send our book review data - using same itemlist and item component');
 })
@@ -93,6 +107,65 @@ app.get('/admin', (req,res) => {
 app.post('/admin/addpost', (req,res) => {
     const {post_title, post_short, articles} = req.body;
     db.transaction(trx => {
+        db('posts_v1')
+            .returning('ID')
+            .insert({
+                title:post_title,
+                short:post_short,
+                date: new Date()
+            })
+            .then((ID) => {
+                const promises = articles.map(article => {
+                    return db('articles_v1')
+                        .insert({
+                            a_title: article.articleTitle,
+                            body:article.articleBody,
+                            article_image: article.articleImage,
+                            article_url:article.articleUrl,
+                            post_id:ID[0]
+                        });
+                    });
+                return Promise.all(promises)
+        })
+            .then(trx.commit)
+            .catch(trx.rollback);
+    })
+        .catch(err => console.log('transaction failed, rollback' + err));
+
+
+})
+
+/*with .map
+ db.transaction(trx => {
+        db('posts_v1')
+            .returning('ID')
+            .insert({
+                title: post_title,
+                short:post_short,
+                date: new Date()
+            })
+            .then((ID) => {
+                const promises = articles.map(article => {
+                    return db('articles_v1')
+                        .insert({
+                            a_title: article.a_title,
+                            body:article.body,
+                            article_image: article.article_image,
+                            article_url:article.article_url,
+                            post_id:ID[0]
+                        });
+                    });
+                return Promise.all(promises)
+            })
+            .then(trx.commit)
+            .catch(trx.rollback);
+    })
+        .catch(err => console.log('transaction failed, rollback' + err));
+*
+* */
+
+/*also variant with forEach
+db.transaction(trx => {
         db('posts_v1')
             .returning('ID')
             .insert({
@@ -121,7 +194,9 @@ app.post('/admin/addpost', (req,res) => {
     })
         .catch(err => console.log('transaction failed' + err));
 
-})
+
+*
+* */
 
 
 
