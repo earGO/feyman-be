@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
-var Promise = require('bluebird');
-
+const Promise = require('bluebird');
+const afetch = require('node-fetch');
 
 const app = express();
 
@@ -24,8 +24,6 @@ const db = knex({
     }
 });
 
-console.log(db.select('*').from('posts_v1').data);
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -43,6 +41,7 @@ app.get('/', (req,res) => {
         .catch(err => res.status(400).json('error getting post'))
 })
 
+
 app.get('/post/:id', (req,res) => {
     const {id} = req.params;
     db.select('*').from('articles_v1').where({
@@ -59,10 +58,10 @@ app.get('/post/:id', (req,res) => {
         .catch(err => res.status(400).json('error getting post'))
 })
 
-
+/*an endpoint that fills each post's tagplate with tags inside ItemList component*/
 app.get('/ptags/:id', (req,res) => {
     const {id} =req.params;
-    db.select('*').from('publ_post_tags')
+    db.select('*').from('publ_post_tags_v2')
         .where({
             post_id: id
         })
@@ -75,6 +74,22 @@ app.get('/ptags/:id', (req,res) => {
         })
         .catch(err => res.status(400).json('error getting taglist'))
 
+})
+
+/*an endpoint that fills each post's tag4sort array with tags ids inside ItemList component
+* for tag filtering implementation
+* for practice i implemented it through async/await and its freaking AWESOME*/
+app.get('/ptagsa/:id', async (req,res) => {
+    const {id} =req.params;
+    let tagsArray=[]
+    let answers = await db.select('post_tag_ids').from('publ_post_tags_v2')
+        .where({
+            post_id: id
+        })
+     answers.map(answer => {
+         tagsArray.push(answer.post_tag_ids)
+     })
+    res.json(tagsArray)
 })
 
 /*get all tags*/
