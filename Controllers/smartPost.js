@@ -5,8 +5,8 @@ const handlePosts = async(req,res,db) => {
     let megaPostsArray=[];
     let quazyMegaPostArray=[];
 
-    /*fetch some data to rrays to work with*/
-    let rawPosts = await db.select('*').from('short_post')
+    /*fetch some data to arrays to work with*/
+    let rawPosts = await db.select('*').from('posts_all')
         .catch(err => res.status(400).json('error getting post'));
     await rawPosts.map(post => {
         rawPostsArray.push(post)
@@ -31,13 +31,15 @@ const handlePosts = async(req,res,db) => {
     * now i'm gonna rework this array to another form, so each item will contain single fields
     * post_id, title, short, and an array of tags. This way I can feed them to
     * appropriate components whithout hard logic in front-end app.*/
-    megaPostsArray.map(megaitem => {
+    await megaPostsArray.map(megaitem => {
         let constrArr=[];
         let postOwnTagArray=[];
         megaitem.map(item => {
-            let smll=[]
-            smll.push(item.name)
-            smll.push(item.img)
+            let smll={}
+            smll.label= item.label;
+            smll.img=item.img;
+            smll.value=item.value;
+            smll.tag_id=item.tag_id;
             postOwnTagArray.push(smll)
         })
         constrArr.push(megaitem[0].post_id)
@@ -45,11 +47,11 @@ const handlePosts = async(req,res,db) => {
         constrArr.push(megaitem[0].short)
         constrArr.push(postOwnTagArray)
         quazyMegaPostArray.push(constrArr)
-        console.log(constrArr)
+
     })
 
 
-    res.json(quazyMegaPostArray.sort())
+    await res.json(quazyMegaPostArray.sort())
 }
 
 module.exports = {
