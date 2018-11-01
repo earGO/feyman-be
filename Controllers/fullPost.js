@@ -5,7 +5,6 @@ const handleFullPost = (req,res,db) => {
         post_id: id
     }).orderBy('art_id', 'asc')
         .then(post => {
-            console.log(post)
             if (post.length) {
                 res.json(post)
             } else {

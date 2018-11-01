@@ -2,7 +2,6 @@
 const handleAddPostWTags = (req,res,db) => {
 
     const {post_title, post_short, articles, tags} = req.body;
-    console.log(tags)
     db.transaction(trx => {
         db('posts_v1')
             .returning('ID')

@@ -10,7 +10,7 @@ const handlePosts = async(req,res,db) => {
         .catch(err => res.status(400).json('error getting post'));
     await rawPosts.map(post => {
         rawPostsArray.push(post)
-        })
+        }).catch(err => res.status(400).json('could not map on rawPosts'));
     rawPosts.map(post => {
         if (!postsIDs.includes(post.post_id)){
             postsIDs.push(post.post_id)

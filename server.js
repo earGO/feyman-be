@@ -9,13 +9,9 @@ const afetch = require('node-fetch');
 
 /*Controllers import*/
 
-const posts = require ('./Controllers/posts');
-const addpost = require('./Controllers/admin/addpost');
 const addpostwtags = require('./Controllers/admin/addPostWTags');
 const admintags = require('./Controllers/admin/tags');
 const fullPost = require('./Controllers/fullPost');
-const postTags = require('./Controllers/postTags');
-const postTagsArray = require('./Controllers/postTagsArray');
 const smartPost = require('./Controllers/smartPost.js');
 
 const app = express();
@@ -36,32 +32,37 @@ const db = knex({
 app.use(cors());
 app.use(bodyParser.json());
 
-/*start page entry point that loads first posts in itemlist*/
-app.get('/', (req,res) => {posts.handlePosts (req,res,db)})
-
+/*send to frontend a JSON object with post data to process, created on backend
+* this endpoint is for <ItemList> component of a frontend*/
 app.get('/smart', (req,res) => {smartPost.handlePosts (req,res,db)})
 
+/*an endpoint thad sends entire post data with articles and stuff*/
 app.get('/post/:id', (req,res) => {fullPost.handleFullPost(req,res,db)})
 
-/*an endpoint that fills each post's tagplate with tags inside ItemList component*/
-app.get('/ptags/:id', (req,res) => {postTags.handlePostTags(req,res,db)})
+/*Admin entrypoints part*/
 
-/*an endpoint that fills each post's tag4sort array with tags ids inside ItemList component
-* for tag filtering implementation*/
-app.get('/ptagsa/:id', async (req,res) => {postTagsArray.handlePostTagsArray(req,res,db)})
-
-/*get all tags*/
+/*get all tags to fill <TagSelector> when creating new post*/
 app.get('/admin/tags/', (req,res) => {admintags.handleTagsAdmin(req,res,db)})
 
-/*Admin entrypoints part*/
 app.get('/admin', (req,res) => {
     res.json('connected to server');
 })
 
-app.post('/admin/addpost', (req,res) => {addpost.handleAddPost(req,res,db)})
-
+/*an endpoint to add post to database*/
 app.post('/admin/addpostwtags', (req,res) => {addpostwtags.handleAddPostWTags (req,res,db)})
 
+app.get('/admin/isuser', (req,res) =>{
+    db.select('*').from('users')
+        .then(data => {
+            console.log('succesfull fetch of users')
+            if (data.length) {
+                res.status(200).json(data)
+            } else {
+                res.status(200).json('user not found')
+            }
+        })
+        .catch(err => res.status(400).json('error getting user'))
+})
 
 /*endpoints dummies
 
@@ -74,7 +75,7 @@ app.get('/projects', (req,res) => {
 })
 
 */
-app.listen(3000,()=>{
+app.listen(5500,()=>{
     console.log('app is running on port 3000');
 })
 
